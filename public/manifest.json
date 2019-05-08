@@ -1,0 +1,26 @@
+{
+    "dir": "ltr",
+    "lang": "en",
+    "name": "Gone Fishing Expenses",
+    "display": "standalone",
+    "start_url": "/",
+    "short_name": "GFE",
+    "theme_color": "transparent",
+    "description": "",
+    "orientation": "any",
+    "background_color": "#2f557f",
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "icons": [
+      {
+        "src": "android-chrome-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "android-chrome-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+}

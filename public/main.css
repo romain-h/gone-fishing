@@ -1,0 +1,53 @@
+*,
+:after,
+:before {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: sans-serif;
+  line-height: 1.15;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -ms-overflow-style: scrollbar;
+  -webkit-tap-highlight-color: rgba(34, 42, 66, 0);
+}
+
+@-ms-viewport {
+  width: device-width;
+}
+
+body {
+  margin: 0;
+  /* font-family: Poppins,sans-serif; */
+  /* font-size: .875rem; */
+  /* font-weight: 400; */
+  /* line-height: 1.5; */
+  color: #a1d2e6;
+  text-align: left;
+  background-color: #2f557f;
+  /* overscroll-behavior-y: contain; [> disable pull to refresh, keeps glow effects <] */
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 0.0625rem solid rgba(34, 42, 66, 0.05);
+  border-radius: 0.2857rem;
+  background: #27293d;
+  border: 0;
+  position: relative;
+  width: 100%;
+  margin-bottom: 30px;
+  box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.1);
+}
+
+a,
+a:hover,
+a:visited {
+  color: white;
+}

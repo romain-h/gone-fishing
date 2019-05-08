@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="manifest" href="assets/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gone Fishing">
+    <meta name="msapplication-TileColor" content="#2f557f">
+    <meta name="theme-color" content="#2f557f">
+    <title>Gone Fishing</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <link href="./assets/main.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <img src="assets/icon.svg" alt="icon" width="40" height="40">
+      <div class="card">
+        Avg per day <strong>£{{ printf "%.2f" .mean }}</strong> (Median: £{{ printf "%.2f" .median}})
+        <a href="/refresh" class="btn btn-primary">Refresh</a>
+      </div>
+      {{ range $i, $val := .expenses }}
+      <div>
+        <a data-toggle="collapse" href="#collapseExample{{ $val.Week }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ $val.Week }}">
+          #{{ $val.Week }} ({{ $val.StartDate.Format "02/01/06" }} - {{ $val.EndDate.Format "02/01/06" }}) (£{{ printf "%.2f" $val.Mean }})
+        </a>
+        <div class="collapse{{ if eq $i 0 }}.show{{end}}" id="collapseExample{{ $val.Week }}">
+          <table class="table table-striped table-sm">
+            {{ range $val.Days }}
+            <tr>
+              <td>{{ .Date.Format "Mon 2 Jan 06" }}</td>
+              <td>£{{ printf "%.2f" .Total }}</td>
+              <td>
+                <table>
+                  {{ range .Expenses }}
+                  <tr>
+                    <td>£{{ printf "%.2f" .Amount }}</td>
+                    <td>{{ .Description }}</td>
+                  </tr>
+                  {{ end }}
+                </table>
+              </td>
+            </tr>
+            {{ end }}
+          </table>
+        </div>
+      </div>
+      {{ end }}
+
+    <script type="text/javascript">
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('./sw.js')
+          .then(function() { console.log('Service Worker Registered'); });
+      }
+    </script>
+  </body>
+</html>
