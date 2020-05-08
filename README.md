@@ -137,3 +137,33 @@ models in DB.
 Because we crossed multiple timezones during this trip, I decided to [shift all
 expense entries](/internal/expenses/expenses.go#L109) to the local timezone in
 which the spend occurred.
+
+## Install
+
+To run this project you'll need
+
+  + Docker (or a Redis server)
+  + Go 1.13.x
+
+Then you'll need the following environment variables that you can set in
+a `.env` with
+
+```bash
+cat << EOF > .env
+export APP_URL="http://127.0.0.1:8080/"
+export START_DATE="2018-09-26T00:00:00Z"
+export MONZO_ACCOUNT_ID="<YOUR_MONZO_CRED>"
+export MONZO_CLIENT_ID="<YOUR_MONZO_CLIENT_ID>"
+export MONZO_CLIENT_SECRET="<YOUR_MONZO_CLIENT_SECRET>"
+export SPLITWISE_CLIENT_ID="<YOUR_SPLITWISE_CLIENT_ID>"
+export SPLITWISE_CLIENT_SECRET="<YOUR_SPLITWISE_CLIENT_SECRET>"
+EOF
+```
+
+```bash
+docker-compose up
+make run
+```
+
+You can run tests with `make test` and build with `make build`.
+
