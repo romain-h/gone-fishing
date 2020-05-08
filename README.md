@@ -1,72 +1,139 @@
-# Gone Fishing Expenses
+# Gone Fishing - Tracking our travel spends
+
+<p align="center">
+  <img src="/doc/iphone-full.png" width=150px" />
+  <img src="/doc/content-full-open.png" width=240px" />
+</p>
 
 ## Context
 
-My girlfriend and I decided to travel for 6 months in South America.
-Travelling over an extended period like that requires to provision a budget and
-stick to it as much as possible. To help us with that and, as I
-wanted to keep up with some coding while being on the road,
-I decided to create an application and learn Go!
+<img align="right" width="100" height="100" src="/doc/on-the-road.jpg">
+
+In 2018, my girlfriend and I decided to travel for 6 months in South America.
+Travelling over an extended period like that requires
+requires having a budget and sticking to it as much as possible.
+To help us with that, and as an excuse to keep coding on the road, I decided to
+create an application and learn Go
 
 ### Why another application?
 
-Most tracking app requires to manually enter all expenses. Thanks to new banks
-like Monzo providing solid APIs, this task can be automated. I also wanted to
-keep using SplitWise for some expenses like the ones paid with a credit card.
+Most tracking apps require you to manually enter all expenses. Thanks to new
+banks like [Monzo](https://monzo.com/) providing an API, this task can now be
+automated. We also wanted to use [Splitwise](https://secure.splitwise.com/) for
+other expenses not paid out of our Monzo accounts.
 
-6 countries means 6 currencies to deal with. Some applications can manage a fixed
-currency exchange rate but cannot be fully accurate and include your bank fees.
-Using my bank API means I can reflect a more accurate spending in my own
-currency.
+6 countries means 6 currencies. Some applications can handle a fixed currency
+rate but they’re never 100% accurate and don’t include any bank fees for paying
+in a foreign currency. Plugging directly into my bank API means I can reflect
+and track my actual spending more accurately and in my own currency.
 
-## Requirement
+## Requirements
 
-Being able to access our daily total spendings as well as an average (and median) per week
-and overall.
+Being able to see:
+
+ 1) our total spending (itemised) each day.
+ 2) he average and median of our total daily spending per week and overall since
+ the start of our trip.
 
 ## Architecture and solution
 
-Initially, I started with a Go application based on Gin Gonic framework. Gin has
-a small footprint and is good to spin up a barebone web application easily. Both
-Monzo and Splitwise returned
+This project is a Go application based on [Gin Gonic](https://gin-gonic.com/)
+framework. Gin has a small footprint and is good to spin up a barebone web
+application easily. This app fetches all expenses from:
 
-// GRAPH Joint account + Splitwise group => normalise
++ our bank Monzo.
++ specifically-identified groups in the Splitwise app that we used to track
+  other expenses.
 
-We quickly realised that some expenses should be manipulated slightly. Here
-2 possible solutions came up:
+We wanted to track our daily spending but there is an issue when simply relying on
+these APIs results. How to reflect expenses paid at one point in time but relating to a different
+period of time? For example, an advance hostel booking for 3 nights.
 
-+ Store metadata on GF application in relational DB
-+ Annotate expenses directly on external services (Monzo & Splitwise)
+ 2 possible solutions came up:
+  + Store metadata on this application in a database.
+  + Collocate metadata next to each expense entry.
 
-While storing metadata on GF required a more complex architecture relying on
-relational model, it turns out that both Monzo and Splitwise allow expenses to be
-annotated with plain text. Therefore parsing this chunck of text is
-enough to provide a way to manipulate our expenses.
+While storing metadata requires a more complex architecture relying on
+relational models, it turns out that both Monzo and Splitwise allow expenses to
+be annotated with plain text. Therefore parsing this block of text was enough to
+provide a way to manipulate our expenses as we wanted and avoid setting up
+a database!
 
-For example, when an expense need to be spreaded over 3 days it could be
-annotated with `#spread 01/04/19 to 03/04/19` Following simple text formats,
-3 features we required came up:
+### Spreading expenses
 
-+ Spreading over days. For expenses like hostels where we spend more than one
-  nights, or flights, we wanted to spread the cost over the appropriate period. We used `#spread 01/04/19 to 03/04/19` or `#nights 01/04/19 to 03/04/19`
-+ Ignore for expenses not related to our trip like gifts to friends etc.
-+ Handling the cash entries. This is the most challenging part as we wanted to
-  be able to reflect all our spending in cash.
+So, say we paid for our 3-night hostel stay on the first day but wanted to
+allocate the price per night to reflect a more accurate daily budget.
+To do this, I chose to apply a special note format and
+[parse it](/internal/expenses/parse.go#L13-L40) to generate new entries in our
+list of expenses.
+
+For example, we spent 2 nights at San Francisco Hotel in Salta (Argentina) and
+paid at then end. The entry on Monzo can be annotated with `#nights 27/11/18 to
+28/11/18`.
+
+<p align="center">
+  <img src="/doc/monzo-nights.png" width=220px" />
+</p>
+
+Here we wanted to track that we spent £26.79 (£53.58 / 2) on Tuesday 27 November
+2018 and on Wednesday 28 November 2018.
+
+<p align="center">
+  <img src="/doc/nights-example.png" width=400px" />
+</p>
+
+Splitwise offers a similar note feature that I leveraged as well to track
+non-Monzo expenses.
+
+<p align="center">
+  <img src="/doc/splitwise-spread.png" width=220px" />
+</p>
+
+
+### Cash entries
+
+Tracking cash during a trip like this is a bit more tricky.  With so many
+transactions made in cash in South America, our automated tracking with the
+Monzo API only got us so far. Also, since ATM withdrawal fees sometimes apply,
+It was difficult to get an accurate sense of our spending.
+
+To cope with this, I decided to follow a [similar
+approach](/internal/expenses/parse.go#L42-L75) adapted to cash
+entries. An ATM withdrawal note starting with `#cash` will treat each line as
+a separate entry.
+
+<p align="center">
+  <img src="/doc/monzo-atm.png" width=220px" />
+  <img src="/doc/monzo-atm-note.png" width=220px" />
+</p>
+
+Each cash entry is converted in GBP [using the real ATM withdrawal
+fees](/internal/expenses/parse.go#L46).
+
+<p align="center">
+  <img src="/doc/cash-example.png" width=400px" />
+</p>
+
+
+Finally, I also used this text annotation to ignore some expenses that might
+have occurred while travelling but were not related to the trip like gifts to
+friends, with the keyword `#ignore`.
 
 ## Iterations
 
 The first iteration on this project was to fetch and display all expenses
-from the Monzo account and Splitwise'group in a simple list, ordered by date.
+from the Monzo account and Splitwise group in a simple list, ordered by date.
 Having something in production straight away was really important for me and
 allowed us to use the gist of this application quickly.
 
 Later I added a layer of caching to prevent hitting API limits while
 developing and also to make the app slightly faster in South America where the
 internet speed is not always good. I decided to use memory cache as I wanted to
-quickly read/write direct blob of data from the app without having to create
+quickly read/write direct blobs of data from the app without having to create
 models in DB.
 
-## Timezone issue
+## Timezones issue
 
-// Describe the timezone issue where we need to reflect an expense in its local
-context.
+Because we crossed multiple timezones during this trip, I decided to [shift all
+expense entries](/internal/expenses/expenses.go#L109) to the local timezone in
+which the spend occurred.
